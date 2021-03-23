@@ -1,0 +1,32 @@
+version: "3.0"
+services:
+  app:
+    depends_on:
+      - backend-db
+    container_name: app
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    restart: always # try restarting till mysql startups
+    tty: true
+    ports:
+      - 8080:80
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOSTNAME: "backend-db" # will resolved by container_name
+  backend-db:
+    image: mysql:5.7
+    container_name: backend-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: 'Asia/Tokyo'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+    - ./data/mysql:/var/lib/mysql
+    - ./docker/mysql/initdb.d:/docker-entrypoint-initdb.d # the files in this directory will excuted when mysql initiated
